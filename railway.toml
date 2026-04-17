@@ -1,0 +1,8 @@
+[build]
+builder = "dockerfile"
+dockerfilePath = "06-lab-complete/Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 100
+restartPolicyType = "on_failure"

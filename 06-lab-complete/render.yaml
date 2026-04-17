@@ -3,7 +3,6 @@ services:
     name: nguyen-thanh-binh-agent
     env: docker
     dockerfilePath: ./Dockerfile
-    dockerContext: ./06-lab-complete
     plan: free
     region: oregon
     healthCheckPath: /health
