@@ -1,0 +1,32 @@
+services:
+  # AI Agent Service
+  - type: web
+    name: nguyen-thanh-binh-agent
+    env: docker
+    dockerfilePath: ./06-lab-complete/Dockerfile
+    dockerContext: ./06-lab-complete
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: AGENT_API_KEY
+        generateValue: true
+      - key: REDIS_URL
+        fromService:
+          name: redis
+          property: connectionString
+      - key: RATE_LIMIT_PER_MINUTE
+        value: 5
+      - key: DAILY_BUDGET_USD
+        value: 5.0
+    healthCheckPath: /health
+    
+  # Redis Service
+  - type: redis
+    name: redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
