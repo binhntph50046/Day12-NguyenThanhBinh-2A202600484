@@ -1,0 +1,18 @@
+# Test Dependencies
+# Install: pip install -r tests/requirements.txt
+
+# HTTP requests
+requests==2.31.0
+
+# Redis client (for stateless tests)
+redis==5.1.0
+
+# Optional: Better testing framework
+pytest==8.0.0
+pytest-asyncio==0.23.0
+
+# Optional: Coverage reporting
+pytest-cov==4.1.0
+
+# Optional: Load testing
+locust==2.20.0

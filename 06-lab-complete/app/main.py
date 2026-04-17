@@ -5,7 +5,7 @@ Checklist:
   ✅ Config từ environment (12-factor)
   ✅ Structured JSON logging
   ✅ API Key authentication
-  ✅ Rate limiting
+  ✅ Rate limiting (5 requests/phút)
   ✅ Cost guard
   ✅ Input validation (Pydantic)
   ✅ Health check + Readiness probe
@@ -15,6 +15,7 @@ Checklist:
   ✅ Error handling
 """
 import os
+import sys
 import time
 import signal
 import logging
@@ -28,6 +29,9 @@ from fastapi.security.api_key import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import uvicorn
+
+# Add parent directory to path for utils import
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.config import settings
 
@@ -49,21 +53,36 @@ _request_count = 0
 _error_count = 0
 
 # ─────────────────────────────────────────────────────────
-# Simple In-memory Rate Limiter
+# Simple In-memory Rate Limiter (5 requests/phút)
+# Production: Dùng Redis để share state giữa các instances
 # ─────────────────────────────────────────────────────────
 _rate_windows: dict[str, deque] = defaultdict(deque)
 
 def check_rate_limit(key: str):
+    """
+    Rate limiter sử dụng Sliding Window algorithm.
+    Giới hạn: 5 requests/phút per API key.
+    
+    Tại sao 5 requests/phút?
+    - Đủ cho testing và demo
+    - Bảo vệ khỏi abuse
+    - Dễ test (không phải đợi lâu)
+    """
     now = time.time()
     window = _rate_windows[key]
+    
+    # Xóa các requests cũ hơn 60 giây
     while window and window[0] < now - 60:
         window.popleft()
-    if len(window) >= settings.rate_limit_per_minute:
+    
+    # Check limit (5 requests/phút)
+    if len(window) >= 5:
         raise HTTPException(
             status_code=429,
-            detail=f"Rate limit exceeded: {settings.rate_limit_per_minute} req/min",
+            detail="Rate limit exceeded: 5 requests per minute. Please try again later.",
             headers={"Retry-After": "60"},
         )
+    
     window.append(now)
 
 # ─────────────────────────────────────────────────────────
@@ -229,7 +248,17 @@ async def ask_agent(
 
 @app.get("/health", tags=["Operations"])
 def health():
-    """Liveness probe. Platform restarts container if this fails."""
+    """
+    Health Check Endpoint (Liveness Probe)
+    
+    Mục đích:
+    - Platform (Railway/Render/K8s) check xem container còn sống không
+    - Nếu fail → restart container
+    
+    Khác với /ready:
+    - /health: Process còn chạy không?
+    - /ready: Sẵn sàng nhận traffic không?
+    """
     status = "ok"
     checks = {"llm": "mock" if not settings.openai_api_key else "openai"}
     return {

@@ -1,6 +1,20 @@
 version: "3.9"
 
+# ============================================================
+# Docker Compose Stack — Agent + Redis
+# 
+# Tại sao cần Redis?
+# - Rate limiting: Share state giữa các agent instances
+# - Session storage: Conversation history
+# - Cache: Giảm latency
+# 
+# Production: Dùng managed Redis (Railway Redis, AWS ElastiCache)
+# ============================================================
+
 services:
+  # ─────────────────────────────────────────────────────────
+  # AI Agent Service
+  # ─────────────────────────────────────────────────────────
   agent:
     build: .
     ports:
@@ -23,11 +37,21 @@ services:
       start_period: 15s
     restart: unless-stopped
 
+  # ─────────────────────────────────────────────────────────
+  # Redis — Rate limiting & Session storage
+  # ─────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 3s
       retries: 3
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:
