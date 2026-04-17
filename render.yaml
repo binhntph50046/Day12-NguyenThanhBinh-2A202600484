@@ -5,6 +5,7 @@ services:
     env: docker
     dockerfilePath: ./06-lab-complete/Dockerfile
     dockerContext: ./06-lab-complete
+    plan: free
     envVars:
       - key: PORT
         value: 8000
@@ -14,19 +15,10 @@ services:
         value: false
       - key: AGENT_API_KEY
         generateValue: true
-      - key: REDIS_URL
-        fromService:
-          name: redis
-          property: connectionString
       - key: RATE_LIMIT_PER_MINUTE
         value: 5
       - key: DAILY_BUDGET_USD
         value: 5.0
+      - key: REDIS_URL
+        value: redis://localhost:6379/0
     healthCheckPath: /health
-    
-  # Redis Service
-  - type: redis
-    name: redis
-    plan: free
-    maxmemoryPolicy: allkeys-lru
-    ipAllowList: []
