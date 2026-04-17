@@ -3,7 +3,7 @@ services:
   - type: web
     name: nguyen-thanh-binh-agent
     env: docker
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: Dockerfile
     dockerContext: ./06-lab-complete
     plan: free
     envVars:
