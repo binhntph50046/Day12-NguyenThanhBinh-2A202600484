@@ -3,7 +3,7 @@ services:
   - type: web
     name: nguyen-thanh-binh-agent
     env: docker
-    dockerfilePath: ./06-lab-complete/Dockerfile
+    dockerfilePath: ./Dockerfile
     dockerContext: ./06-lab-complete
     plan: free
     envVars:
@@ -19,6 +19,4 @@ services:
         value: 5
       - key: DAILY_BUDGET_USD
         value: 5.0
-      - key: REDIS_URL
-        value: redis://localhost:6379/0
     healthCheckPath: /health
